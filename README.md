@@ -153,6 +153,16 @@ La captura muestra el crecimiento progresivo de 320,000 a 460,000 elementos (de 
 
 En esta ejecucion el valor reportado del archivo de paginacion **no aumento** (se mantuvo entre 1.71 y 1.83 GB). Es decir, durante esta prueba concreta Windows no mostro, a traves de esta metrica, un traslado adicional de paginas al disco.
 
+**Observacion con el Administrador de tareas** (dos ejecuciones posteriores, distintas de la anterior):
+
+Ejecucion detenida por el **limite de RAM del sistema**: con 110,000 elementos la RAM llego al 92.3 % (limite 92 %) y el programa detuvo el llenado. El Administrador de tareas muestra la memoria al 92 % y el proceso `Python` con 130.6 MB.
+
+![Estres de memoria - Administrador de tareas, limite de RAM](evidencias/09_estres_memoria_administrador_tareas_limite_ram.png)
+
+Ejecucion en la fase de mantenimiento y liberacion: con 380,000 elementos (428 MB en RAM) la RAM del sistema estuvo entre 91.8 % y 92.7 %. Al liberar, el proceso bajo a 23 MB y la RAM del sistema a 89.2 %. El Administrador de tareas, capturado despues de la liberacion, muestra la memoria al 90 %. En ambas ejecuciones el archivo de paginacion reportado se mantuvo entre 1.71 y 1.79 GB.
+
+![Estres de memoria - Administrador de tareas, liberacion](evidencias/10_estres_memoria_administrador_tareas_liberacion.png)
+
 ---
 
 ## Ejercicio 4: Prioridad de Procesos (Scheduling)
@@ -205,7 +215,24 @@ El CSV contiene **dos series** de pruebas comparativas. Los promedios se calcula
 
 En las 12 rondas **HIGH termino primero**. Los tiempos absolutos de la serie 2 son mayores que los de la serie 1, posiblemente por una mayor carga del equipo en ese momento (a las 23:13 el ejercicio 1 registro la RAM en 96.5 %). La tendencia, sin embargo, es la misma en ambas series.
 
+**Ejecucion individual (`prioridad.py`), filas 26–27 del CSV:** un solo proceso, sin competir con otro, con afinidad libre `[0, 1, 2, 3, 4, 5, 6, 7]`.
+
+| Prioridad pedida | Aplicada | PID | Duracion real | Tiempo de CPU |
+|---|---|---|---|---|
+| LOW | BELOW_NORMAL | 8020 | 6.401 s | 6.297 s |
+| HIGH | HIGH | 15588 | 6.115 s | 6.125 s |
+
+En la ejecucion individual la columna `turnaround_seconds` queda vacia en el CSV, porque el tiempo de retorno solo se calcula en la comparacion simultanea. Sin otro proceso compitiendo, la duracion real es practicamente igual al tiempo de CPU con ambas prioridades.
+
 ### Evidencias
+
+Ejecucion individual con prioridad LOW:
+
+![prioridad.py low](evidencias/11_prioridad_low.png)
+
+Ejecucion individual con prioridad HIGH:
+
+![prioridad.py high](evidencias/12_prioridad_high.png)
 
 Comparacion con afinidad al mismo nucleo (rondas 1 y 2). Se ve LOW -> `BELOW_NORMAL`, HIGH -> `HIGH`, afinidad `[0]`, PID, tiempos de CPU y de retorno:
 
@@ -215,7 +242,7 @@ Comparacion sin afinidad (rondas 1 y 2), afinidad `[0, 1, 2, 3, 4, 5, 6, 7]`:
 
 ![Comparacion sin afinidad](evidencias/07_comparacion_sin_afinidad.png)
 
-Contenido de `resultados_prioridad.csv` con las 24 filas de ambas series:
+Contenido de `resultados_prioridad.csv` con las 24 filas de ambas series (la captura es anterior a las dos filas de la ejecucion individual):
 
 ![Resultados de prioridad](evidencias/08_resultados_prioridad.png)
 
@@ -251,11 +278,14 @@ Capturas adicionales con la ronda 3 y el resumen final de cada comparacion:
 | [06_comparacion_prioridades.png](evidencias/06_comparacion_prioridades.png) | 4 | LOW vs HIGH en el mismo nucleo (rondas 1–2): PID, prioridades, afinidad, CPU, retorno |
 | [07_comparacion_sin_afinidad.png](evidencias/07_comparacion_sin_afinidad.png) | 4 | LOW vs HIGH sin afinidad (rondas 1–2) |
 | [08_resultados_prioridad.png](evidencias/08_resultados_prioridad.png) | 4 | Contenido de `resultados_prioridad.csv` (24 filas, dos series) |
+| [09_estres_memoria_administrador_tareas_limite_ram.png](evidencias/09_estres_memoria_administrador_tareas_limite_ram.png) | 3 | Administrador de tareas (memoria al 92 %, proceso Python) junto a la consola. Llenado detenido por el limite de RAM del 92 % |
+| [10_estres_memoria_administrador_tareas_liberacion.png](evidencias/10_estres_memoria_administrador_tareas_liberacion.png) | 3 | Administrador de tareas junto a la consola: mantenimiento de 15 s, liberacion (proceso a 23 MB) y fin de la prueba |
+| [11_prioridad_low.png](evidencias/11_prioridad_low.png) | 4 | `prioridad.py low`: un proceso, LOW -> BELOW_NORMAL, PID 8020, 6.401 s reales y 6.297 s de CPU |
+| [12_prioridad_high.png](evidencias/12_prioridad_high.png) | 4 | `prioridad.py high`: un proceso, HIGH -> HIGH, PID 15588, 6.115 s reales y 6.125 s de CPU |
 | [adicional/06b_comparacion_prioridades_ronda3_resumen.png](evidencias/adicional/06b_comparacion_prioridades_ronda3_resumen.png) | 4 | Mismo nucleo: ronda 3 y resumen (LOW 11.998 s, HIGH 6.001 s) |
 | [adicional/07b_comparacion_sin_afinidad_ronda3_resumen.png](evidencias/adicional/07b_comparacion_sin_afinidad_ronda3_resumen.png) | 4 | Sin afinidad: ronda 3 y resumen (LOW 8.010 s, HIGH 7.807 s) |
 
-### Evidencias no incluidas
+### Notas sobre las evidencias
 
-- **Administrador de tareas (Ejercicio 3):** no se cuenta con una captura del Administrador de tareas durante la prueba de estres. Solo hay evidencia de la salida en consola.
-- **`prioridad.py low` / `prioridad.py high` (Ejercicio 4):** no hay captura de la ejecucion individual de un solo proceso. Las evidencias corresponden a `comparar_prioridades.py`.
-- **Ejercicio 3:** la captura no muestra el inicio de la ejecucion (advertencia, confirmacion ni estado inicial). Comienza en el segundo 10.7.
+- **Ejercicio 3:** las capturas 05, 09 y 10 corresponden a tres ejecuciones distintas. Ninguna muestra la advertencia inicial ni la confirmacion para comenzar.
+- **Ejercicio 4:** la captura 08 del CSV es anterior a las ejecuciones individuales. Las filas de `prioridad.py low/high` estan en el archivo `resultados_prioridad.csv` del repositorio.
